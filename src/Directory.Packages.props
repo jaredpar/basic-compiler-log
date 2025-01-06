@@ -8,7 +8,7 @@
     <PackageVersion Include="Basic.Reference.Assemblies.Net60" Version="1.7.9" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.14.0" />
     <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.5" />
-    <PackageVersion Include="coverlet.msbuild" Version="6.0.2" />
+    <PackageVersion Include="coverlet.msbuild" Version="6.0.3" />
     <PackageVersion Include="MessagePack" Version="2.5.187" />
     <PackageVersion Include="Microsoft.CodeAnalysis" Version="$(_RoslynVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="$(_RoslynVersion)" />
