@@ -5,10 +5,17 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Mono.Options;
 using StructuredLogViewer;
 using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Text;
 using static Constants;
+
+if (args.Length > 2 && args[0] == "--compiler")
+{
+    var compilerDirectory = args[1];
+    return RunInContext(args.Skip(2).ToArray(), compilerDirectory);
+}
 
 var (command, rest) = args.Length == 0
     ? ("help", Enumerable.Empty<string>())
@@ -891,3 +898,38 @@ static string GetResolvedPath(string baseDirectory, string path)
 
 static void Write(string str) => Constants.Out.Write(str);
 static void WriteLine(string line) => Constants.Out.WriteLine(line);
+
+static int RunInContext(string[] args, string compilerDirectory)
+{
+    var alc = CreateContext(compilerDirectory, Path.GetDirectoryName(typeof(Program).Assembly.Location)!);  
+    var assemblyName = typeof(Program).Assembly.GetName();
+    var assembly = alc.LoadFromAssemblyName(assemblyName);
+    var program = assembly.GetType("Program", throwOnError: true);
+    var main = program!.GetMethod("<Main>$", BindingFlags.Static | BindingFlags.NonPublic);
+    try
+    {
+        var ret = main!.Invoke(null, (object[])[args])!;
+        return (int)ret;
+    }
+    catch (TargetInvocationException e)
+    {
+        throw e.InnerException!;
+    }
+
+    static AssemblyLoadContext CreateContext(string compilerDirectory, string compilerLogDirectory)
+    {
+        var alc = new AssemblyLoadContext("Custom Compiler Load Context");
+        foreach (var dir in (string[])[compilerDirectory, compilerLogDirectory])
+        {
+            foreach (var dllFilePath in Directory.EnumerateFiles(dir, "*.dll"))
+            {
+                if (RoslynUtil.TryReadMvid(dllFilePath) is { })
+                {
+                    alc.LoadFromAssemblyPath(dllFilePath);
+                }
+            }
+        }
+
+        return alc;
+    }
+}

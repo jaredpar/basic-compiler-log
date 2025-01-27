@@ -23,7 +23,7 @@ using System.Xml;
 
 namespace Basic.CompilerLog.Util;
 
-internal static class RoslynUtil
+public static class RoslynUtil
 {
     // GUIDs specified in https://github.com/dotnet/runtime/blob/main/docs/design/specs/PortablePdb-Metadata.md#document-table-0x30
     internal static readonly Guid HashAlgorithmSha1 = unchecked(new Guid((int)0xff1816ec, (short)0xaa5e, 0x4d10, 0x87, 0xf7, 0x6f, 0x49, 0x63, 0x83, 0x34, 0x60));
@@ -285,7 +285,7 @@ internal static class RoslynUtil
         return new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
     }
 
-    internal static Guid? TryReadMvid(string filePath)
+    public static Guid? TryReadMvid(string filePath)
     {
         if (!File.Exists(filePath))
         {
