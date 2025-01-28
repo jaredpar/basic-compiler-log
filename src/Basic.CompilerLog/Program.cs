@@ -11,12 +11,6 @@ using System.Runtime.Loader;
 using System.Text;
 using static Constants;
 
-if (args.Length > 2 && args[0] == "--compiler")
-{
-    var compilerDirectory = args[1];
-    return RunInContext(args.Skip(2).ToArray(), compilerDirectory);
-}
-
 var (command, rest) = args.Length == 0
     ? ("help", Enumerable.Empty<string>())
     : (args[0], args.Skip(1));
@@ -458,11 +452,13 @@ int RunResponseFile(IEnumerable<string> args)
 int RunReplay(IEnumerable<string> args)
 {
     string? baseOutputPath = null;
+    string? compilerPath = null;
     var severity = DiagnosticSeverity.Warning;
     var options = new FilterOptionSet(analyzers: true)
     {
         { "severity=", "minimum severity to display (default Warning)", (DiagnosticSeverity s) => severity = s },
         { "o|out=", "path to emit to ", void (string b) => baseOutputPath = b },
+        { "c|compiler=", "path to compiler to use for replay", void (string c) => compilerPath = c },
     };
 
     try
@@ -478,6 +474,11 @@ int RunReplay(IEnumerable<string> args)
         {
             baseOutputPath = GetBaseOutputPath(baseOutputPath);
             WriteLine($"Outputting to {baseOutputPath}");
+        }
+
+        if (compilerPath is not null && AssemblyLoadContext.Default == AssemblyLoadContext.GetLoadContext(typeof(Program).Assembly))
+        {
+            return RunInContext(["replay", .. args], compilerPath);
         }
 
         using var reader = GetCompilerCallReader(extra, options.BasicAnalyzerKind, checkVersion: true);
@@ -915,17 +916,25 @@ static int RunInContext(string[] args, string compilerDirectory)
     {
         throw e.InnerException!;
     }
+    finally
+    {
+        alc.Unload();
+    }
 
     static AssemblyLoadContext CreateContext(string compilerDirectory, string compilerLogDirectory)
     {
-        var alc = new AssemblyLoadContext("Custom Compiler Load Context");
+        var alc = new AssemblyLoadContext("Custom Compiler Load Context", isCollectible: true);
+        var hashSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var dir in (string[])[compilerDirectory, compilerLogDirectory])
         {
             foreach (var dllFilePath in Directory.EnumerateFiles(dir, "*.dll"))
             {
                 if (RoslynUtil.TryReadMvid(dllFilePath) is { })
                 {
-                    alc.LoadFromAssemblyPath(dllFilePath);
+                    if (RoslynUtil.ReadAssemblyName(dllFilePath) is { } n && hashSet.Add(n))
+                    {
+                        alc.LoadFromAssemblyPath(dllFilePath);
+                    }
                 }
             }
         }

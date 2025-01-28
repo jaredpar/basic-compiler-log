@@ -25,9 +25,9 @@ using TraceReloggerLib;
 
 #pragma warning disable 8321
 
-var zipFilePath = @"C:\Users\jaredpar\Downloads\msbuild_logs.zip";
+//var zipFilePath = @"C:\Users\jaredpar\Downloads\msbuild_logs.zip";
 //using var reader = CompilerLogReader.Create(zipFilePath);
-RunComplog($"print -c {zipFilePath}");
+RunComplog($@"replay --compiler C:\Users\jaredpar\Downloads\dotnet-sdk-9.0.200-win-x64\sdk\9.0.200\Roslyn\bincore -p WinStore.DataContracts2.csproj C:\Users\jaredpar\Downloads\msbuild_logs\msbuild.complog");
 
 
 

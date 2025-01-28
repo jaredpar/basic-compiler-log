@@ -14,6 +14,7 @@ internal static partial class Constants
     internal static string LocalAppDataDirectory { get; set; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Basic.CompilerLog");
+
     internal static TextWriter Out { get; set; } = Console.Out;
 
     internal static Action<ICompilerCallReader> OnCompilerCallReader = _ => { };

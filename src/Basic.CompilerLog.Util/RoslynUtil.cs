@@ -692,7 +692,9 @@ public static class RoslynUtil
         return null;
     }
 
-    internal static string? ReadAssemblyName(string assemblyFilePath)
+    
+
+    public static string? ReadAssemblyName(string assemblyFilePath)
     {
         return MetadataReader.GetAssemblyName(assemblyFilePath).Name;
     }
